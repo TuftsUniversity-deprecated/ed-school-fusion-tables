@@ -87,8 +87,7 @@
 <script src="../assets/js/bootstrap-typeahead.js"></script>
 <script type="text/javascript">
     google.load('visualization', '1');
-    var lay = null;
-    var val = null;
+   
 
     function getDropDownValues(filter_column, table_id)
     {
@@ -161,7 +160,7 @@
             });
             
             table["layer"] = layer;
-            lay = layer;
+         
             //console.log(layer);
         }
   
@@ -169,6 +168,7 @@
                 'change', function () {
                     updateMap(table_info, map);
                 });
+      
     }
 
     // Update the query sent to the Fusion Table Layer based on
@@ -200,8 +200,12 @@
             getDropDownValues(table_info[type].filter_column, table_info[type].table_id).then(function(values) {
             //    alert("success : " + values);
             $('select#program_type').remove();
-            $('#query_filters').append("<select class=\"span2 filterselect\" id=\"program_type\"></select>");
 
+            $('#query_filters').append("<select class=\"span2 filterselect\" id=\"program_type\"></select>");
+google.maps.event.addDomListener(document.getElementById('program_type'),
+                'change', function () {
+                    updateMap(table_info, map, true);
+                });
  
             json = JSON.parse(values.getDataTable().toJSON());
             console.log(json);
@@ -219,10 +223,7 @@
                 val = values;
                 //   console.log(values);
 
-                google.maps.event.addDomListener(document.getElementById('program_type'),
-                'change', function () {
-                    updateMap(table_info, map, true);
-                });
+                
                 },
                 function(errorMessage) {
                  alert(errorMessage);
@@ -245,6 +246,62 @@
             });
         }*/
 
+        updateLayers(table_info, map, type, secondary_filter);
+    }
+
+    function updateLayers(table_info, map, type, secondary_filter)
+    {
+        var table = null;
+        var layer = null;
+        var program = null;
+
+        //regenerate layers
+        //$('#selection_type').empty();
+        for (var key in table_info)            
+        {
+         if (secondary_filter)
+         {
+            program = document.getElementById('program_type').value;
+            //alert(program);
+         }
+          //  $('#selection_type').append($("<option></option>")
+          //      .attr("value",key)
+           //     .text(key)); 
+            table = table_info[key];
+
+            layer = table["layer"];
+            if (secondary_filter)
+            { 
+                layer.setQuery({
+                select:table.location_column,
+                from:table.table_id,
+                where: table.filter_column + "='"+ program +"'" 
+                //where:"Program='M.A.T. Middle and High School'"
+                });
+
+            }
+            else
+            {
+                layer.setQuery({
+                select:table.location_column,
+                from:table.table_id,
+
+                //where:"Program='M.A.T. Middle and High School'"
+                });
+            }
+            //new google.maps.FusionTablesLayer({
+            //    query:{
+            //    select:table.location_column,
+            //    from:table.table_id,
+            //    //where:"Program='M.A.T. Middle and High School'"
+            //    },
+            //    map:map
+            //});
+            
+            table["layer"] = layer;
+         
+            //console.log(layer);
+        }
         for (var key in table_info)
         {
             //console.log(type);
