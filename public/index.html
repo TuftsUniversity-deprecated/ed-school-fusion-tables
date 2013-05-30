@@ -210,6 +210,9 @@ google.maps.event.addDomListener(document.getElementById('program_type'),
             json = JSON.parse(values.getDataTable().toJSON());
             console.log(json);
             rows = json.rows
+             $('#program_type').append($("<option></option>")
+                        .attr("value","All")
+                        .text("All"));
             for (var i = 0; i < rows.length; i++ )
             {
                 row = rows[i].c[0].v;
@@ -270,7 +273,7 @@ google.maps.event.addDomListener(document.getElementById('program_type'),
             table = table_info[key];
 
             layer = table["layer"];
-            if (secondary_filter)
+            if (secondary_filter && program != "All")
             { 
                 layer.setQuery({
                 select:table.location_column,
