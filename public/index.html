@@ -87,24 +87,26 @@
 <script src="../assets/js/bootstrap-typeahead.js"></script>
 <script type="text/javascript">
     google.load('visualization', '1');
-    var deferred = $.Deferred();
     var lay = null;
     var val = null;
 
     function getDropDownValues(filter_column, table_id)
     {
+            var deferred = $.Deferred();
+
         var queryText = encodeURIComponent(
             "SELECT " + filter_column + " FROM " + table_id + " GROUP BY " + filter_column);
-        alert(queryText);
-        var query = new google.visualization.Query(
+//alert(queryText);
+
+        var query = null;
+        query = new google.visualization.Query(
             'http://www.google.com/fusiontables/gvizdata?tq='  + queryText);
-        //alert("a");
         query.send(function(response) {
-            //alert(response);
-            //console.log(response);
+          //  console.log("LAH");
+        //    console.log(response);
             deferred.resolve(response);
           
-            //console.log(numRows);
+            
 
         });
 
@@ -173,11 +175,11 @@
     // the user selection in the select menu
     var added = false;
 
-    function updateMap(table_info, map) {
+    function updateMap(table_info, map, secondary_filter) {
 
         var type = document.getElementById('selection_type').value;
         //<select class="span2 filterselect" id="selection_type"></select>
-        
+       // alert(type);
         if (!added)
         {
             $('#query_filters').append("<select class=\"span2 filterselect\" id=\"program_type\"></select>");
@@ -190,24 +192,37 @@
             added = false;
         }
 
-        if (type != "All")
+        if (type != "All" && !secondary_filter)
         {
-            $('#program_type').remove();
-            $('#query_filters').append("<select class=\"span2 filterselect\" id=\"program_type\"></select>");
+           
+           // $('#query_filters').append("<select class=\"span2 filterselect\" id=\"program_type\"></select>");
+           // console.log(table_info[type]);
             getDropDownValues(table_info[type].filter_column, table_info[type].table_id).then(function(values) {
             //    alert("success : " + values);
+            $('select#program_type').remove();
+            $('#query_filters').append("<select class=\"span2 filterselect\" id=\"program_type\"></select>");
+
+ 
             json = JSON.parse(values.getDataTable().toJSON());
+            console.log(json);
             rows = json.rows
             for (var i = 0; i < rows.length; i++ )
             {
                 row = rows[i].c[0].v;
-                $('#program_type').append($("<option></option>")
-                    .attr("value",row)
-                    .text(row)); 
-
+                if (row != "")
+                {    
+                    $('#program_type').append($("<option></option>")
+                        .attr("value",row)
+                        .text(row)); 
+                }
             }
-            val = values;
-            console.log(values);
+                val = values;
+                //   console.log(values);
+
+                google.maps.event.addDomListener(document.getElementById('program_type'),
+                'change', function () {
+                    updateMap(table_info, map, true);
+                });
                 },
                 function(errorMessage) {
                  alert(errorMessage);
